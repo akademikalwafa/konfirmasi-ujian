@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1E3A5F">
+<title>Konfirmasi Ujian Online</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo" id="logo-box" aria-hidden="true">LOGO</div>
+    <div>
+      <div class="brand-name" id="brand-name">[NAMA KAMPUS]</div>
+      <div class="brand-sub">Portal Konfirmasi Ujian</div>
+    </div>
+  </div>
+  <div class="top-pills">
+    <span class="pill pill-blue" id="pill-periode"><i class="dot amber"></i><span>Memuat…</span></span>
+    <span class="pill pill-gray" id="pill-server">Server: <b>Memuat</b></span>
+  </div>
+  <div class="top-user" id="top-user" hidden>
+    <span id="top-user-name"></span>
+    <button class="btn btn-ghost btn-sm" id="btn-logout">Keluar</button>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="nav" aria-label="Navigasi portal">
+    <div class="nav-label">Navigasi Portal</div>
+    <a href="#ketentuan" data-g="mhs" class="active"><span data-i="user"></span><b>Portal Mahasiswa</b></a>
+    <a href="#dosen" data-g="dosen"><span data-i="file"></span><b>Portal Dosen</b></a>
+    <a href="#admin" data-g="admin"><span data-i="shield"></span><b>Panel Admin</b></a>
+    <div class="nav-help" id="nav-help"></div>
+  </nav>
+
+  <main id="main">
+
+    <!-- ===== W-01 KETENTUAN ===== -->
+    <section class="view active" id="v-ketentuan">
+      <div class="container narrow">
+        <div class="card regbar" id="reg-bar"></div>
+        <div class="card pad">
+          <div class="steps"><span class="step-dot">1</span><span>Ketentuan Akademik &amp; Regulasi</span><em>Langkah 1 dari 2</em></div>
+          <div class="progress"><i style="width:50%"></i></div>
+          <h1>Ketentuan Permohonan Izin Ujian Online</h1>
+          <p class="muted">Wajib dibaca dan dipahami sebelum mengisi formulir keikutsertaan ujian daring.</p>
+          <ol class="terms" id="terms-list">
+            <li class="skel-block"></li><li class="skel-block"></li><li class="skel-block"></li>
+          </ol>
+          <label class="agree"><input type="checkbox" id="agree-chk"><span><b>Persetujuan Syarat &amp; Ketentuan</b><br>Saya telah membaca, memahami, dan menyetujui seluruh ketentuan prosedur izin ujian online di atas.</span></label>
+          <button class="btn btn-accent btn-block btn-lg" id="btn-lanjut" disabled>Lanjut ke Form Pengajuan <span data-i="arrowR"></span></button>
+          <a class="link-center" href="#status"><span data-i="search"></span> Sudah pernah mengajukan? Cek Status Pengajuan (NIM)</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== W-02 FORM ===== -->
+    <section class="view" id="v-form">
+      <div class="container narrow">
+        <div class="card pad">
+          <a class="back" href="#ketentuan"><span data-i="arrowL"></span> Kembali ke Ketentuan</a>
+          <div class="steps"><span class="step-dot">2</span><span>Pengisian Data &amp; Dokumen</span><em>Langkah 2 dari 2</em></div>
+          <div class="progress"><i style="width:100%"></i></div>
+          <h1>Pengisian Data &amp; Dokumen</h1>
+          <p class="muted">Lengkapi kredensial akademik dan lampiran surat dispensasi resmi.</p>
+          <div class="pill pill-navy" id="form-jenis">Jenis Ujian: –</div>
+          <div class="note"><span data-i="shield"></span><div><b>Verifikasi Resmi Akademik</b><br>Data yang diajukan langsung diverifikasi oleh admin akademik. Pastikan surat dan data benar.</div></div>
+          <div class="alert alert-error" id="form-alert" hidden></div>
+
+          <form id="form-ajuan" novalidate autocomplete="off">
+            <div class="field"><label for="f-email">Email Mahasiswa Aktif <i>*</i></label>
+              <input id="f-email" type="email" inputmode="email" placeholder="nama@email.com">
+              <small class="hint">Notifikasi persetujuan/penolakan dikirim ke email ini.</small><div class="err" data-for="email"></div></div>
+            <div class="field"><label for="f-nama">Nama Lengkap Mahasiswa <i>*</i></label>
+              <input id="f-nama" type="text" placeholder="Sesuai data akademik"><div class="err" data-for="nama"></div></div>
+            <div class="field"><label for="f-nim">Nomor Induk Mahasiswa (NIM) <i>*</i></label>
+              <input id="f-nim" type="text" inputmode="numeric" placeholder="Contoh: 2210511042"><div class="err" data-for="nim"></div></div>
+            <div class="grid2">
+              <div class="field"><label for="f-prodi">Program Studi <i>*</i></label><select id="f-prodi"><option value="">Memuat…</option></select><div class="err" data-for="prodi"></div></div>
+              <div class="field"><label for="f-semester">Semester <i>*</i></label><select id="f-semester"><option value="">Memuat…</option></select><div class="err" data-for="semester"></div></div>
+            </div>
+            <div class="field"><label for="f-alasan">Alasan Izin Mengikuti Ujian Online <i>*</i> <span class="count" id="alasan-count">0/500</span></label>
+              <textarea id="f-alasan" rows="4" maxlength="500" placeholder="Jelaskan alasan secara singkat dan jelas"></textarea><div class="err" data-for="alasan"></div></div>
+
+            <div class="field"><label>Surat Dispensasi / Bukti Resmi <i>*</i> <span class="count">Format PDF</span></label>
+              <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Pilih berkas PDF">
+                <span class="dz-icon" data-i="upload"></span>
+                <b>Unggah Surat Izin / Dispensasi</b>
+                <small>Wajib format .pdf, ukuran maksimal <span class="maxmb">5</span> MB</small>
+                <span class="btn btn-navy btn-sm">Pilih Berkas PDF</span>
+                <input type="file" id="f-file" accept="application/pdf,.pdf" hidden>
+              </div>
+              <div class="filechip" id="filechip" hidden></div>
+              <div class="err" data-for="file"></div></div>
+
+            <label class="agree plain"><input type="checkbox" id="f-deklarasi"><span>Saya menyatakan dokumen terlampir adalah orisinal dan bersedia menerima sanksi akademik jika terbukti melakukan pemalsuan.</span></label>
+            <div class="err" data-for="deklarasi"></div>
+
+            <div class="actionbar">
+              <button type="button" class="btn btn-soft" id="btn-batal">Batal</button>
+              <button type="submit" class="btn btn-accent grow" id="btn-kirim">Kirim Pengajuan <span data-i="arrowR"></span></button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== W-03 SUKSES ===== -->
+    <section class="view" id="v-sukses">
+      <div class="container narrow"><div class="card pad center" id="sukses-body"></div></div>
+    </section>
+
+    <!-- ===== W-04 CEK STATUS ===== -->
+    <section class="view" id="v-status">
+      <div class="container narrow">
+        <div class="card pad">
+          <a class="back" href="#ketentuan"><span data-i="arrowL"></span> Kembali</a>
+          <h1>Cek Status Pengajuan</h1>
+          <p class="muted">Masukkan NIM yang Anda gunakan saat mengajukan izin.</p>
+          <form id="form-cek" class="inline-form" novalidate>
+            <input id="cek-nim" type="text" inputmode="numeric" placeholder="NIM" aria-label="NIM">
+            <button class="btn btn-navy" id="btn-cek" type="submit">Cek Status</button>
+          </form>
+          <div class="err" data-for="cek"></div>
+          <div id="cek-hasil"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== W-05 DITUTUP ===== -->
+    <section class="view" id="v-ditutup">
+      <div class="container narrow"><div class="card pad center">
+        <div class="bigicon gray" data-i="lock"></div>
+        <h1>Pengajuan Sedang Ditutup</h1>
+        <p class="muted" id="ditutup-pesan">Pengajuan dibuka kembali sesuai jadwal dari akademik.</p>
+        <a class="btn btn-navy" href="#status">Cek Status Pengajuan</a>
+      </div></div>
+    </section>
+
+    <!-- ===== W-06 LOGIN DOSEN ===== -->
+    <section class="view" id="v-dosen-login">
+      <div class="container tiny"><form class="card pad center" id="form-dosen-login" novalidate>
+        <div class="bigicon navy" data-i="key"></div>
+        <h1>Akses Dosen</h1>
+        <p class="muted">Masukkan kode masuk yang dibagikan oleh akademik.</p>
+        <div class="field left"><label for="dosen-kode">Kode Masuk</label><input id="dosen-kode" type="password" autocomplete="off" placeholder="Kode masuk"></div>
+        <div class="alert alert-error" id="dosen-err" hidden></div>
+        <button class="btn btn-navy btn-block" id="btn-dosen-login" type="submit">Masuk</button>
+      </form></div>
+    </section>
+
+    <!-- ===== W-07 LOGIN ADMIN ===== -->
+    <section class="view" id="v-admin-login">
+      <div class="container tiny"><form class="card pad center" id="form-admin-login" novalidate>
+        <div class="bigicon navy" data-i="shield"></div>
+        <h1>Login Admin</h1>
+        <p class="muted">Khusus admin akademik.</p>
+        <div class="field left"><label for="adm-user">Username</label><input id="adm-user" type="text" autocomplete="username"></div>
+        <div class="field left"><label for="adm-pass">Kata Sandi</label><input id="adm-pass" type="password" autocomplete="current-password"></div>
+        <div class="alert alert-error" id="admin-err" hidden></div>
+        <button class="btn btn-navy btn-block" id="btn-admin-login" type="submit">Masuk</button>
+      </form></div>
+    </section>
+
+    <!-- ===== W-08 DOSEN ===== -->
+    <section class="view" id="v-dosen">
+      <div class="container wide">
+        <div class="card pad head-card">
+          <div><h1>Daftar Mahasiswa Ujian Online</h1>
+            <p class="muted">Rekap kehadiran ujian jarak jauh per Program Studi &amp; Semester.</p></div>
+          <span class="pill pill-amber">Mode Lihat Saja</span>
+        </div>
+        <div class="stats" id="dosen-stats"></div>
+        <div class="card filters" id="dosen-filters">
+          <div class="search"><span data-i="search"></span><input type="search" data-f="q" placeholder="Cari nama atau NIM…"></div>
+          <select data-f="prodi"></select><select data-f="semester"></select><select data-f="periode"></select><select data-f="status"></select>
+          <button class="btn btn-soft btn-icon" data-act="refresh" title="Muat ulang" aria-label="Muat ulang"><span data-i="refresh"></span></button>
+        </div>
+        <div id="dosen-groups"></div>
+      </div>
+    </section>
+
+    <!-- ===== W-10..W-13 ADMIN ===== -->
+    <section class="view" id="v-admin">
+      <div class="container wide">
+        <div class="card pad head-card">
+          <div><div class="eyebrow">Modul Administrasi Ujian</div><h1>Panel Verifikasi Ujian Mahasiswa</h1></div>
+          <label class="switch-wrap"><span>Akses Pengajuan: <b id="adm-akses-label">–</b></span>
+            <span class="switch"><input type="checkbox" id="adm-toggle"><i></i></span></label>
+        </div>
+        <div class="tabs" id="adm-tabs">
+          <button data-tab="daftar" class="active">Daftar Pengajuan <span class="badge" id="badge-pending">0</span></button>
+          <button data-tab="rekap">Rekap Angka</button>
+          <button data-tab="atur">Pengaturan</button>
+        </div>
+
+        <div class="atab active" id="atab-daftar">
+          <div class="card filters" id="adm-filters">
+            <div class="search"><span data-i="search"></span><input type="search" data-f="q" placeholder="Cari nama atau NIM…"></div>
+            <select data-f="prodi"></select><select data-f="semester"></select><select data-f="periode"></select>
+            <div class="chips" data-f="status"></div>
+            <button class="btn btn-soft btn-icon" data-act="refresh" title="Muat ulang" aria-label="Muat ulang"><span data-i="refresh"></span></button>
+          </div>
+          <div class="review" id="review"></div>
+          <div class="card pad queue">
+            <div class="queue-head"><div><h2>Antrean Pengajuan</h2><small class="muted">Klik baris untuk meninjau surat pada panel di atas.</small></div><small class="muted" id="queue-count"></small></div>
+            <div class="table-wrap"><table class="table" id="queue-table"><thead><tr><th>ID &amp; Waktu</th><th>NIM &amp; Mahasiswa</th><th>Prodi / Smt</th><th>Alasan</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+          </div>
+        </div>
+
+        <div class="atab" id="atab-rekap">
+          <div class="card pad">
+            <div class="queue-head"><h2>Rekap Jumlah Pengajuan</h2><select id="rekap-periode"></select></div>
+            <div class="table-wrap"><table class="table" id="rekap-table"></table></div>
+          </div>
+        </div>
+
+        <div class="atab" id="atab-atur">
+          <div class="subtabs" id="atur-tabs">
+            <button data-s="prodi" class="active">Prodi &amp; Semester</button><button data-s="ujian">Ujian &amp; Jadwal</button>
+            <button data-s="akses">Akses &amp; Keamanan</button><button data-s="ident">Ketentuan &amp; Identitas</button>
+          </div>
+          <div class="card pad" id="atur-body"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toasts" aria-live="polite"></div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script src="js/staff.js"></script>
+</body>
+</html>
