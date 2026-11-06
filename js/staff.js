@@ -136,13 +136,53 @@
     }
     return pdfCache.get(id);
   }
+  // Chrome/Safari di HP tidak menampilkan PDF di dalam iframe (hanya placeholder "Buka").
+  // Solusi: desktop -> iframe bawaan browser; HP/tablet -> render halaman PDF ke <canvas> dengan pdf.js.
+  var PDFJS_BASE = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+  var MAX_PAGES = 15, pdfjsP = null;
+  function nativePdfOk() { return navigator.pdfViewerEnabled === true && !/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent); }
+  function loadPdfJs() {
+    if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+    if (pdfjsP) return pdfjsP;
+    pdfjsP = new Promise(function (res, rej) {
+      var sc = document.createElement('script'); sc.src = PDFJS_BASE + 'pdf.min.js';
+      sc.onload = function () {
+        if (!window.pdfjsLib) { pdfjsP = null; return rej(new Error('Penampil PDF tidak tersedia.')); }
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_BASE + 'pdf.worker.min.js'; res(window.pdfjsLib);
+      };
+      sc.onerror = function () { pdfjsP = null; rej(new Error('Gagal memuat penampil PDF. Periksa koneksi internet.')); };
+      document.head.appendChild(sc);
+    });
+    return pdfjsP;
+  }
+  async function renderCanvasPdf(box, url, guard) {
+    var lib = await loadPdfJs();
+    var buf = await (await fetch(url)).arrayBuffer();
+    var doc = await lib.getDocument({ data: buf }).promise;
+    if (guard && !guard()) return;
+    box.innerHTML = '<div class="pdf-pages"></div>';
+    var wrap = box.firstChild, width = Math.max(wrap.clientWidth - 16, 240), dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var n = Math.min(doc.numPages, MAX_PAGES);
+    for (var i = 1; i <= n; i++) {
+      if (guard && !guard()) return;
+      var page = await doc.getPage(i), base = page.getViewport({ scale: 1 }), vp = page.getViewport({ scale: width / base.width * dpr });
+      var cv = document.createElement('canvas'); cv.width = Math.floor(vp.width); cv.height = Math.floor(vp.height); cv.style.width = Math.floor(vp.width / dpr) + 'px';
+      cv.setAttribute('aria-label', 'Halaman ' + i + ' dari ' + doc.numPages);
+      wrap.appendChild(cv);                                   // tampil per halaman (halaman 1 muncul lebih dulu)
+      await page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+    }
+    if (doc.numPages > n) { var m = document.createElement('div'); m.className = 'pdf-more'; m.textContent = 'Menampilkan ' + n + ' dari ' + doc.numPages + ' halaman. Gunakan "Unduh" untuk melihat seluruhnya.'; wrap.appendChild(m); }
+  }
   function pdfInto(box, id, guard) {
     box.innerHTML = '<div class="skeleton"></div>';
     loadSurat(id).then(function (x) {
       if (guard && !guard()) return;
-      box.innerHTML = '<iframe title="Surat izin" src="' + x.url + '#view=FitH"></iframe>';
-      var link = box.parentNode.querySelector('.pdf-open'); if (link) { link.href = x.url; link.hidden = false; }
-    }).catch(function (e) { if (!guard || guard()) box.innerHTML = '<div class="empty">' + icon('alert') + '<br>Gagal memuat surat.<br><small>' + esc(e.message) + '</small></div>'; });
+      var head = box.parentNode, open = head.querySelector('.pdf-open'), dl = head.querySelector('.pdf-dl');
+      if (open) { open.href = x.url; open.hidden = false; }
+      if (dl) { dl.href = x.url; dl.download = x.name || 'surat-izin.pdf'; dl.hidden = false; }
+      if (nativePdfOk()) { box.innerHTML = '<iframe title="Surat izin" src="' + x.url + '#view=FitH"></iframe>'; return; }
+      return renderCanvasPdf(box, x.url, guard);
+    }).catch(function (e) { if (!guard || guard()) box.innerHTML = '<div class="empty">' + icon('alert') + '<br>Gagal menampilkan surat.<br><small>' + esc(e.message) + '</small><br><br><small>Coba tombol "Unduh" di atas.</small></div>'; });
   }
   function prefetch(id) { if (A.staff && id) loadSurat(id).catch(function () {}); }
 
@@ -172,7 +212,7 @@
   function bukaSuratModal(id) {
     var r = d().list.filter(function (x) { return x.id === id; })[0]; if (!r) return;
     var wrap = document.createElement('div');
-    wrap.innerHTML = '<dl class="kv"><dt>Nama</dt><dd>' + esc(r.nama) + '</dd><dt>NIM</dt><dd>' + esc(r.nim) + '</dd><dt>Prodi / Smt</dt><dd>' + esc(r.prodi) + ' / ' + esc(r.semester) + '</dd><dt>Alasan</dt><dd>' + esc(r.alasan) + '</dd></dl><div class="pdf-head"><span>Surat Izin (PDF)</span><a class="pdf-open" target="_blank" rel="noopener" hidden>Buka di tab baru</a></div><div class="pdf-box"></div>';
+    wrap.innerHTML = '<dl class="kv"><dt>Nama</dt><dd>' + esc(r.nama) + '</dd><dt>NIM</dt><dd>' + esc(r.nim) + '</dd><dt>Prodi / Smt</dt><dd>' + esc(r.prodi) + ' / ' + esc(r.semester) + '</dd><dt>Alasan</dt><dd>' + esc(r.alasan) + '</dd></dl><div class="pdf-head"><span>Surat Izin (PDF)</span><span class="pdf-links"><a class="pdf-open" target="_blank" rel="noopener" hidden>Buka di tab baru</a><a class="pdf-dl" hidden>Unduh</a></span></div><div class="pdf-box"></div>';
     A.modal({ title: 'Surat Izin — ' + r.nama, big: true, body: wrap, actions: [{ label: 'Tutup', cls: 'btn-soft' }] });
     pdfInto($('.pdf-box', wrap), id);
   }
@@ -183,6 +223,7 @@
     $('#dosen-groups').addEventListener('pointerover', function (e) { var b = e.target.closest('[data-surat]'); if (b) prefetch(b.dataset.surat); });
   }
   A.onShow.dosen = function () {
+    if (!nativePdfOk()) loadPdfJs().catch(function () {});
     if (!ST.data) { var cached = SS.get('boot', null); if (cached) ST.data = cached; }
     if (ST.data) { var f = ST.f.dosen; if (!f.periode) f.periode = ST.data.periodeAktif; syncFilterUI('dosen', '#dosen-filters', true); $('#dosen-filters [data-f="q"]').value = f.q; renderDosen(); }
     else $('#dosen-groups').innerHTML = '<div class="card pad"><div class="skeleton" style="width:100%;height:160px"></div></div>';
@@ -222,7 +263,7 @@
     if (!r) { box.innerHTML = '<div class="panel" style="grid-column:1/-1"><div class="empty"><div class="bigicon">' + icon('file') + '</div>Pilih pengajuan dari antrean untuk meninjau suratnya.</div></div>'; return; }
     var decided = r.status !== 'Menunggu';
     box.innerHTML =
-      '<div class="panel"><div class="pdf-head"><span>' + icon('file') + ' Surat Izin (PDF)</span><a class="pdf-open" target="_blank" rel="noopener" hidden>Buka di tab baru</a></div><div class="pdf-box" id="pdf-main"></div></div>' +
+      '<div class="panel"><div class="pdf-head"><span>' + icon('file') + ' Surat Izin (PDF)</span><span class="pdf-links"><a class="pdf-open" target="_blank" rel="noopener" hidden>Buka di tab baru</a><a class="pdf-dl" hidden>Unduh</a></span></div><div class="pdf-box" id="pdf-main"></div></div>' +
       '<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><small class="muted">ID PERMOHONAN</small><h2>' + esc(r.id) + '</h2></div>' + pill(r.status, r._pending) + '</div>' +
       '<div class="meta"><div class="box"><b>' + esc(r.nama) + '</b><small>NIM ' + esc(r.nim) + ' · ' + esc(r.email) + '</small></div>' +
       '<div class="box"><small>Program Studi / Semester</small>' + esc(r.prodi) + ' · Semester ' + esc(r.semester) + '</div>' +
@@ -369,6 +410,7 @@
     tb.addEventListener('pointerover', function (e) { var tr = e.target.closest('tr[data-id]'); if (tr) prefetch(tr.dataset.id); });
   }
   A.onShow.admin = function () {
+    if (!nativePdfOk()) loadPdfJs().catch(function () {});
     if (!ST.data) { var cached = SS.get('boot', null); if (cached) ST.data = cached; }
     if (ST.data) {
       if (!ST.f.admin.periode) ST.f.admin.periode = ST.data.periodeAktif;
